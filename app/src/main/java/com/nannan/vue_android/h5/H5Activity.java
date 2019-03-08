@@ -48,8 +48,6 @@ public class H5Activity extends AppCompatActivity {
         mX5WebView.loadUrl("file:///android_asset/vue/h5/html_1.html");
         // 设置方法拦截... (参数1 不清楚, 参数2 交互时相互定义的名字)
         mX5WebView.addJavascriptInterface(new JSInterface(),"latte");
-
-       // mX5WebView.loadUrl("file:///android_asset/vue/h5/camera.html");
     }
 
     @Override
@@ -88,19 +86,9 @@ public class H5Activity extends AppCompatActivity {
                 mX5WebView.post(new Runnable() {
                     @Override
                     public void run() {
-                        // 传递参数... 4.4以下
-                        // mX5WebView.loadUrl("javascript:nativeCall();");
-                        //  4.4    11111_1
-                        final String filePath = Environment.getExternalStorageDirectory()+ File.separator+"DCIM"+File.separator+"Camera"+
-                                File.separator+"IMG_20190228_091600.jpg";
-                        Log.e("222", "run: "+filePath );
                         Intent intentToPickPic = new Intent(Intent.ACTION_PICK, null);
-                        // 如果限制上传到服务器的图片类型时可以直接写如："image/jpeg 、 image/png等的类型" 所有类型则写 "image/*"
                         intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/jpeg");
                         startActivityForResult(intentToPickPic,CHOOSE_PGOTO);
-                        /**
-                         * 后面考虑以json格式进行转换传递
-                         */
                     }
                 });
             }
@@ -135,6 +123,7 @@ public class H5Activity extends AppCompatActivity {
     }
 
     public void showPic(String imagePath){
+        //todo json传值
         mX5WebView.evaluateJavascript("javascript:nativeCall(\'"+imagePath+"\');",
                 new ValueCallback<String>() {
             @Override
