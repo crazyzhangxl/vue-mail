@@ -1,0 +1,9 @@
+// 图片传递进行加载的案例
+// https://www.jb51.net/article/126939.htm
+
+// 比较不错的实现本地图片拍摄的问题
+https://blog.csdn.net/qq_17470165/article/details/80671304
+
+
+// 搜索名词: webview+android 实现加载相册图片
+https://www.jianshu.com/p/aa589c05c307
