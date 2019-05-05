@@ -3,11 +3,11 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "com.nannan.vue_android"
-        minSdkVersion 15
+        applicationId "com.yanchangapp"
+        minSdkVersion 16
         targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        versionCode 6
+        versionName "1.4.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -16,6 +16,27 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            def requested = details.requested
+            if (requested.group == 'com.android.support') {
+                if (!requested.name.startsWith("multidex")) {
+                    details.useVersion '26.1.0'
+                }
+            }
+        }
+    }
+
+    /**
+     * 牛逼啊 aar传递引用
+     */
+    repositories {
+        flatDir {
+            dirs '../bugly/libs_aar'
+        }
+    }
+
+    buildToolsVersion '26.0.2'
 }
 
 dependencies {
@@ -26,4 +47,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     implementation files('libs/tbs_sdk.jar')
+    implementation 'com.liulishuo.filedownloader:library:1.7.6'
+    implementation 'com.afollestad.material-dialogs:commons:0.9.6.0'
+    // PermissionDispatche库 更新会出问题的
+    implementation 'com.github.hotchemi:permissionsdispatcher:2.3.2'
+    annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.3.2'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation project(':bugly')
 }

@@ -27,7 +27,8 @@
     var img = document.getElementById('img');
 
     function nativeCall(text) {
-        img.src = text;
+        //img.src = text;
+        alert(text);
         // 要不然会执行回调2次呢 -- 4.2 以下回传
         // window.latte.nativeCall2('哈哈哈哈哈哈');
         return "图片切换成功";

@@ -12,7 +12,9 @@ import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.nannan.vue_android.MainActivity;
+import com.nannan.vue_android.NotifyBean;
 import com.nannan.vue_android.R;
 import com.nannan.vue_android.X5WebView;
 import com.tencent.smtt.export.external.interfaces.ConsoleMessage;
@@ -124,7 +126,11 @@ public class H5Activity extends AppCompatActivity {
 
     public void showPic(String imagePath){
         //todo json传值
-        mX5WebView.evaluateJavascript("javascript:nativeCall(\'"+imagePath+"\');",
+        NotifyBean notifyBean = new NotifyBean("control","msg");
+        String s = new Gson().toJson(notifyBean);
+        Log.e("数据", s );
+        //"javascript:nativeCall(\'"+imagePath+"\');"
+        mX5WebView.evaluateJavascript("javascript:nativeCall(\'"+s+"\');",
                 new ValueCallback<String>() {
             @Override
             public void onReceiveValue(String s) {

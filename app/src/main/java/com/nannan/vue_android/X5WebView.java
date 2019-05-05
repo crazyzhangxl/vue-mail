@@ -65,7 +65,4 @@ public class X5WebView extends WebView {
 		super(arg0);
 		setBackgroundColor(85621);
 	}
-
-
-
 }
