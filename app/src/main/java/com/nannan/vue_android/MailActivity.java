@@ -9,7 +9,6 @@ import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import com.tencent.smtt.export.external.interfaces.ConsoleMessage;
-import com.tencent.smtt.sdk.ValueCallback;
 import com.tencent.smtt.sdk.WebChromeClient;
 
 public class MailActivity extends AppCompatActivity {
@@ -29,7 +28,7 @@ public class MailActivity extends AppCompatActivity {
         });
         mWebView.getSettings();
         // mWebView.loadUrl("file:///android_asset/vue/mail/html_1.html");
-         mWebView.loadUrl("file:///android_asset/vue/mail/index.html");
+         mWebView.postUrl("file:///android_asset/vue/h5/test.html","123".getBytes());
         //mWebView.loadUrl("file:///android_asset/vue/index.html");
         mWebView.addJavascriptInterface(new JSInterface(),"latte");
 

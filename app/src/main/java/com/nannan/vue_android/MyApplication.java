@@ -1,10 +1,8 @@
 package com.nannan.vue_android;
 
 import android.app.Application;
-import android.util.Log;
 
 import com.nannan.vue_android.utils.BuglyHelper;
-import com.tencent.smtt.sdk.QbSdk;
 
 public class MyApplication extends Application {
 

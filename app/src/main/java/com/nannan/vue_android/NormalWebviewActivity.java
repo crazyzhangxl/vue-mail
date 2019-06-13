@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import com.nannan.vue_android.R;
+
 
 public class NormalWebviewActivity extends AppCompatActivity {
     private WebView webview;

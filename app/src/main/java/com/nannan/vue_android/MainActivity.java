@@ -6,10 +6,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebView;
 import android.widget.Toast;
 
-import com.nannan.vue_android.h5.H5Activity;
 import com.tencent.smtt.export.external.interfaces.ConsoleMessage;
 import com.tencent.smtt.sdk.ValueCallback;
 import com.tencent.smtt.sdk.WebChromeClient;

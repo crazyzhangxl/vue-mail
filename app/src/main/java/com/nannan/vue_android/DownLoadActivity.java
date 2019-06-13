@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,8 +17,16 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -32,13 +39,6 @@ import com.nannan.vue_android.store.Login;
 import com.nannan.vue_android.store.SharePreferenceUtils;
 import com.nannan.vue_android.utils.BuglyHelper;
 import com.nannan.vue_android.utils.LoadingProgressDialog;
-import com.tencent.smtt.export.external.interfaces.ConsoleMessage;
-import com.tencent.smtt.sdk.ValueCallback;
-import com.tencent.smtt.sdk.WebChromeClient;
-import com.tencent.smtt.sdk.WebView;
-import com.tencent.smtt.sdk.WebViewClient;
-
-import org.json.JSONObject;
 
 import java.io.File;
 
@@ -55,13 +55,17 @@ public class DownLoadActivity extends AppCompatActivity {
     private Context context;
     private MaterialDialog mWaitMaterialDialog;
     private MaterialDialog mPSMaterialDialog;
+
     private android.webkit.WebView mWebView;
     private File file;
     private String savePath;
     private long exitTime;
     private Dialog mNiceDialog;
     private  boolean isFirstLoading = true;
-
+    private boolean isSuccess = false;
+    private boolean isError = false;
+    private RelativeLayout mRlError;
+    private TextView mTvErrorText;
 
     @SuppressLint("AddJavascriptInterface")
     @Override
@@ -70,77 +74,98 @@ public class DownLoadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_down_load);
         context = this;
         initWebView();
-        mWebView.addJavascriptInterface(new JSInterface(),"latte");
-        mWebView.setWebViewClient(new android.webkit.WebViewClient(){
-
-            @Override
-            public void onPageStarted(android.webkit.WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                showNiceDialog(context);
-            }
-
-            @Override
-            public void onPageFinished(android.webkit.WebView view, String url) {
-                super.onPageFinished(view, url);
-                cancelNiceDialog();
-                if (isFirstLoading) {
-                    BuglyHelper.getInstance().doUpdateNow(context);
-                    isFirstLoading = false;
-                }
-            }
-        });
-
-//        mWebView = (X5WebView)findViewById(R.id.webview);
-//        mWebView.setWebChromeClient(new WebChromeClient(){
+//        new android.webkit.WebViewClient(){
 //            @Override
-//            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
-//                Log.i("consoleMessage", consoleMessage.message());
-//                return super.onConsoleMessage(consoleMessage);
-//            }
-//        });
-//        mWebView.getSettings();
-//        mWebView.addJavascriptInterface(new JSInterface(),"latte");
-//        mWebView.setWebViewClient(new WebViewClient(){
-//            @Override
-//            public void onPageStarted(WebView webView, String s, Bitmap bitmap) {
-//                super.onPageStarted(webView, s, bitmap);
+//            public void onPageStarted(android.webkit.WebView view, String url, Bitmap favicon) {
+//                super.onPageStarted(view, url, favicon);
 //                showNiceDialog(context);
-//                //Toast.makeText(context, "开始加载", Toast.LENGTH_SHORT).show();
 //            }
 //
 //            @Override
-//            public void onPageFinished(WebView webView, String s) {
-//                super.onPageFinished(webView, s);
-//                Handler handler = new Handler();
-//                handler.postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        cancelNiceDialog();
-//                        if (isFirstLoading) {
-//                            BuglyHelper.getInstance().doUpdateNow(context);
-//                            isFirstLoading = false;
-//                        }
-//                    }
-//                }, 500);//3秒后执行Runnable中的run方法
-//                //Toast.makeText(context, "加载完毕", Toast.LENGTH_SHORT).show();
+//            public void onPageFinished(android.webkit.WebView view, String url) {
+//                super.onPageFinished(view, url);
+//                view.getSettings().setBlockNetworkImage(false);
+//                cancelNiceDialog();
+//                if (isFirstLoading) {
+//                    BuglyHelper.getInstance().doUpdateNow(context);
+//                    isFirstLoading = false;
+//                }
 //            }
-//        });
+//        }
+
+        mWebView.setWebViewClient(new WebViewClient(){
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                isError = false;
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view,url);
+                cancelNiceDialog();
+                if (!isError) {
+                    isSuccess = true;
+                    if (mWebView.getVisibility() == View.INVISIBLE){
+                        mWebView.setVisibility(View.VISIBLE);
+                    }
+                    isError = false;
+                    return;
+                }
+                // 失败的处理
+                mWebView.setVisibility(View.INVISIBLE);
+                mRlError.setVisibility(View.VISIBLE);
+                isError = false;
+            }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                isError = true;
+                isSuccess = false;
+            }
+        });
+
+        mWebView.setWebChromeClient(new WebChromeClient(){
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                if (newProgress == 100){
+                    cancelNiceDialog();
+                    view.getSettings().setBlockNetworkImage(false);
+                    if (isFirstLoading) {
+                        BuglyHelper.getInstance().doUpdateNow(context);
+                        isFirstLoading = false;
+                    }
+                }else {
+                    showNiceDialog(context);
+                }
+            }
+        });
+        mWebView.addJavascriptInterface(new JSInterface(),"latte");
         // 进行网络权限的请求
         DownLoadActivityPermissionsDispatcher.needPermissionWithCheck(DownLoadActivity.this);
     }
 
     private void initWebView() {
         mWebView = findViewById(R.id.webview);
+        mTvErrorText = findViewById(R.id.tvText);
+        mRlError = findViewById(R.id.loadError);
+        mTvErrorText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRlError.setVisibility(View.GONE);
+                loadWebView();
+            }
+        });
+
         WebSettings setting = mWebView.getSettings();
         /**支持Js**/
         setting.setJavaScriptEnabled(true);
-
         /**设置自适应屏幕，两者合用**/
         //将图片调整到适合webview的大小
         setting.setUseWideViewPort(true);
         // 缩放至屏幕的大小
         setting.setLoadWithOverviewMode(true);
-
         /**缩放操作**/
         // 是否支持画面缩放，默认不支持
         setting.setBuiltInZoomControls(true);
@@ -149,7 +174,6 @@ public class DownLoadActivity extends AppCompatActivity {
         setting.setDisplayZoomControls(false);
         // 设置网页内容自适应屏幕大小
         setting.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
-
         /**设置允许JS弹窗**/
         setting.setJavaScriptCanOpenWindowsAutomatically(true);
         setting.setAppCacheEnabled(true);
@@ -157,33 +181,49 @@ public class DownLoadActivity extends AppCompatActivity {
         setting.setGeolocationEnabled(true);
         setting.setAppCacheMaxSize(Long.MAX_VALUE);
         setting.setPluginState(WebSettings.PluginState.ON_DEMAND);
-
-        /**关闭webview中缓存**/
+        /*关闭webview中缓存*/
         setting.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        /**设置可以访问文件 **/
+        /*设置可以访问文件*/
         setting.setAllowFileAccess(true);
         setting.setAllowFileAccessFromFileURLs(true);
         setting.setAllowUniversalAccessFromFileURLs(true);
         setting.setAllowContentAccess(true);
+        setting.setBlockNetworkImage(true);
     }
 
     private void loadWebView(){
         //mWebView.loadUrl("file:///android_asset/vue/mail/index.html");
         // 测试环境包......
         // mWebView.loadUrl("file:///android_asset/vue/test/index.html");
-         mWebView.loadUrl("http://192.168.1.108:8012/#/login");
-        //mWebView.loadUrl("http://app.extsci.com/#/login");
+        //mWebView.loadUrl("http://172.22.31.1:8012/#/newLogin");
+        //mWebView.loadUrl("http://192.168.1.108:8012/#/newLogin");
+        SharePreferenceUtils instance = SharePreferenceUtils.getInstance(context);
+        String info="";
+        if (instance.getString(Login.id,null) != null){
+            info = "?id="+instance.getString(Login.id,null)+
+                    "&token="+instance.getString(Login.token,null)+
+                    "&username="+instance.getString(Login.username,null)+
+                    "&name="+instance.getString(Login.name,null)+
+                    "&mobile="+instance.getString(Login.mobile,null)+
+                    "&emailDomain="+instance.getString(Login.emailDomain,null)+
+                    "&departmentName="+instance.getString(Login.departmentName,null)+
+                    "&companyId="+instance.getString(Login.companyId,null)+
+                    "&companyName="+instance.getString(Login.companyName,null)+
+                    "&account="+instance.getString(Login.account,null)+
+                    "&password="+instance.getString(Login.password,null)+
+                    "&employeeId="+instance.getString(Login.employeeId,null)+
+                    "&positionId="+instance.getString(Login.positionId,null)+
+                    "&departmentId="+instance.getString(Login.departmentId,null) +
+                    "&identity="+instance.getString(Login.identity,null)+
+                    "&positionName="+instance.getString(Login.positionName,null)+
+                    "&companyType="+instance.getString(Login.companyType,null);
+        }
+        Log.e("数据", "http://172.22.31.1:8012/#/newLogin"+info);
+        // 线上 == 应用市场
+        // mWebView.loadUrl("http://app.extsci.com/#/newLogin"+info);
+        mWebView.loadUrl("https://app.wjsci.com/#/newLogin"+info);
+        //mWebView.loadUrl("http://192.168.1.123:8080/#/newLogin"+info);
     }
-
-
-//
-//    void initWebView(){
-//        // 网站上的地址,新的东西
-//        //mWebView.loadUrl("http://app.extsci.com/#/login");
-//        // 本地上的IP
-//        //mWebView.loadUrl("file:///android_asset/vue/mail/index.html");
-//        mWebView.loadUrl("file:///android_asset/vue/test/index.html");
-//    }
 
     /**
      * https://blog.csdn.net/wuqingsen1/article/details/80485093
@@ -198,6 +238,7 @@ public class DownLoadActivity extends AppCompatActivity {
     onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK && mWebView.canGoBack()) {
             mWebView.goBack();//返回上个页面
+            Log.e("地址", mWebView.getUrl());
             return true;
         }else if (keyCode == KeyEvent.KEYCODE_BACK && !mWebView.canGoBack()){
             if ((System.currentTimeMillis() - exitTime) > 2000) {
@@ -238,6 +279,9 @@ public class DownLoadActivity extends AppCompatActivity {
 
     public void showNiceDialog(Context context){
         try {
+            if (mNiceDialog != null && mNiceDialog.isShowing()){
+                return;
+            }
             mNiceDialog = LoadingProgressDialog.createLoadingDialog(context);
             mNiceDialog.setCanceledOnTouchOutside(false);
             mNiceDialog.show();
@@ -267,7 +311,7 @@ public class DownLoadActivity extends AppCompatActivity {
         @JavascriptInterface
         public void event(final String info){
             // 获得传递的值
-            Log.e("数据传输", info);
+            Log.e("数据", info);
             Gson gson = new Gson();
             NotifyBean notifyBean = gson.fromJson(info, NotifyBean.class);
             String command =  notifyBean.command;
@@ -279,6 +323,7 @@ public class DownLoadActivity extends AppCompatActivity {
                 intent.putExtra("path",notifyBean.msg);
                 startActivity(intent);
             }else if ("save_login".equals(command)){
+                Log.e("数据", "event: 进来了");
                 SharePreferenceUtils instance = SharePreferenceUtils.getInstance(context);
                 instance.putString(Login.id,notifyBean.id);
                 instance.putString(Login.token,notifyBean.token);
@@ -287,11 +332,16 @@ public class DownLoadActivity extends AppCompatActivity {
                 instance.putString(Login.mobile,notifyBean.mobile);
                 instance.putString(Login.emailDomain,notifyBean.emailDomain);
                 instance.putString(Login.departmentName,notifyBean.departmentName);
+                instance.putString(Login.departmentId,notifyBean.departmentId);
                 instance.putString(Login.companyId,notifyBean.companyId);
                 instance.putString(Login.companyName,notifyBean.companyName);
                 instance.putString(Login.account,notifyBean.account);
                 instance.putString(Login.password,notifyBean.password);
-                Log.e("检查数据", "event: " +instance.getString(Login.token,""));
+                instance.putString(Login.employeeId,notifyBean.employeeId);
+                instance.putString(Login.positionId,notifyBean.positionId);
+                instance.putString(Login.identity,notifyBean.identity);
+                instance.putString(Login.positionName,notifyBean.positionName);
+                instance.putString(Login.companyType,notifyBean.companyType);
             }else if ("login_in".equals(command)){
                 if (mWebView != null){
                     mWebView.post(new Runnable() {
@@ -309,9 +359,18 @@ public class DownLoadActivity extends AppCompatActivity {
                 instance.remove(Login.name);
                 instance.remove(Login.mobile);
                 instance.remove(Login.emailDomain);
+                instance.remove(Login.departmentId);
                 instance.remove(Login.departmentName);
                 instance.remove(Login.companyId);
                 instance.remove(Login.companyName);
+                instance.remove(Login.positionId);
+                instance.remove(Login.employeeId);
+                // 账号是否需要清除呢
+                instance.remove(Login.account);
+                instance.remove(Login.password);
+                instance.remove(Login.positionName);
+                instance.remove(Login.identity);
+                instance.remove(Login.companyType);
             }
         }
     }
@@ -319,34 +378,19 @@ public class DownLoadActivity extends AppCompatActivity {
 
     public void notifyLoginDara(){
         //todo json传值
-        SharePreferenceUtils instance = SharePreferenceUtils.getInstance(context);
-
-        NotifyBean notifyBean =
-                new NotifyBean(
-                    instance.getString(Login.id,null),
-                    instance.getString(Login.token,null),
-                    instance.getString(Login.username,null),
-                    instance.getString(Login.name,null),
-                    instance.getString(Login.mobile,null),
-                    instance.getString(Login.emailDomain,null),
-                    instance.getString(Login.departmentName,null),
-                    instance.getString(Login.companyId,null),
-                    instance.getString(Login.companyName,null),
-                    instance.getString(Login.account,null),
-                    instance.getString(Login.password,null)
-                );
-        String info = new Gson().toJson(notifyBean);
-        Log.e("检查数据", info );
-        //"javascript:nativeCall(\'"+imagePath+"\');"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            mWebView.evaluateJavascript("javascript:loginAndroid("+info+");",
-                    new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String s) {
-
-                        }
-                    });
-        }
+//        SharePreferenceUtils instance = SharePreferenceUtils.getInstance(context);
+//        String info = new Gson().toJson(notifyBean);
+//        Log.e("检查数据", info );
+//        //"javascript:nativeCall(\'"+imagePath+"\');"
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//            mWebView.evaluateJavascript("javascript:loginAndroid("+info+");",
+//                    new ValueCallback<String>() {
+//                        @Override
+//                        public void onReceiveValue(String s) {
+//
+//                        }
+//                    });
+//        }
     }
 
 
@@ -428,8 +472,8 @@ public class DownLoadActivity extends AppCompatActivity {
         Log.e("路径", path+"");
         try {
             //设置intent的data和Type属性
-            intent.setDataAndType(Uri.fromFile(new File(path)),
-                     "text/html|image/*|text/plain|image/jpeg|application/pdf");
+            // "text/html|image/*|text/plain|image/jpeg|application/pdf|application/msword"
+            intent.setDataAndType(Uri.fromFile(new File(path)), "image/*");
             //跳转
             context.startActivity(intent);
         } catch (Exception e) { //当系统没有携带文件打开软件，提示

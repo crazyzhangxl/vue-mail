@@ -29,7 +29,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MailActivity" />
+        <activity android:name=".MailActivity" >
+        </activity>
         <activity android:name=".MainActivity" />
         <activity android:name=".IndexActivity" />
         <activity android:name=".h5.H5Activity" />

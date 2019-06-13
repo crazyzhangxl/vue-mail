@@ -10,7 +10,14 @@ public class Login {
     public static final String departmentName = "departmentName";
     public static final String companyId = "companyId";
     public static final String companyName = "companyName";
+
     public static final String account = "account";
     public static final String password = "password";
 
+    public static final String employeeId = "employeeId";
+    public static final String positionId = "positionId";
+    public static final String departmentId = "departmentId";
+    public static final String identity = "identity";
+    public static final String positionName = "positionName";
+    public static final String companyType = "companyType";
 }

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,15 +12,12 @@ import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.nannan.vue_android.MainActivity;
 import com.nannan.vue_android.NotifyBean;
 import com.nannan.vue_android.R;
 import com.nannan.vue_android.X5WebView;
 import com.tencent.smtt.export.external.interfaces.ConsoleMessage;
 import com.tencent.smtt.sdk.ValueCallback;
 import com.tencent.smtt.sdk.WebChromeClient;
-
-import java.io.File;
 
 /**
  * @author crazyZhangxl on 2019-3-6 13:41:38.
